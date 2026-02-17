@@ -29,11 +29,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Redis client (only if environment variables are set)
+# Initialize Redis client
+# Vercel+Upstash integration uses KV_REST_API_* env vars;
+# upstash-redis SDK expects UPSTASH_REDIS_REST_* — map if needed.
+for src, dst in [("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL"), ("KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN")]:
+    if src in os.environ and dst not in os.environ:
+        os.environ[dst] = os.environ[src]
+
 try:
     redis = Redis.from_env()
 except KeyError:
-    # For local testing without Redis env vars
     redis = None
 
 # Storage functions for Redis
